@@ -1,0 +1,56 @@
+--Server--
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+
+int main() {
+    int fd;
+    char message[100];
+
+    mkfifo("myfifo", 0666);
+    fd = open("myfifo", O_WRONLY);
+
+    while (1) {
+        printf("Enter message (type 'exit' to quit): ");
+        fgets(message, sizeof(message), stdin);
+        message[strcspn(message, "\n")] = 0;
+
+        write(fd, message, strlen(message) + 1);
+
+        if (strcmp(message, "exit") == 0)
+            break;
+    }
+
+    close(fd);
+    return 0;
+}
+
+--Client--
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+
+int main() {
+    int fd;
+    char message[100];
+
+    mkfifo("myfifo", 0666);
+    fd = open("myfifo", O_RDONLY);
+
+    while (1) {
+        read(fd, message, sizeof(message));
+        if (strcmp(message, "exit") == 0)
+            break;
+
+        printf("Received: %s\n", message);
+    }
+
+    close(fd);
+    return 0;
+}
